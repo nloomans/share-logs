@@ -23,8 +23,16 @@
         exit 1
     fi
 
-    echo "---> Running eopkg check..."
-    # sudo eopkg check -N 2>&1 | tee /tmp/share-logs.data/eopkg-check.log
+    read -p "Would you like to run eopkg check? (takes a minute or two!) [Y/n] " yn
+    case $yn in
+        [Nn]* )
+            echo "Slipping eopkg check..."
+            ;;
+        * ) 
+            echo "---> Running eopkg check..."
+            sudo eopkg check -N 2>&1 | tee /tmp/share-logs.data/eopkg-check.log
+            ;;
+    esac
 
     echo "---> Collecting journalctl log files from the last 5 boots..."
     sudo journalctl -b > /tmp/share-logs.data/journalctl.0.log
