@@ -58,7 +58,7 @@ send_logs () {
     sudo journalctl -b 4 > "$tmpdir/journalctl.4.log"
 
     echo "---> Collecting hardware information"
-    inxi | tee "$tmpdir/inxi"
+    inxi -F | tee "$tmpdir/inxi"
     lspci | tee "$tmpdir/lspci"
     lsusb | tee "$tmpdir/lsusb"
     linux-driver-management status | tee "$tmpdir/linux-driver-management"
