@@ -1,5 +1,14 @@
 #!/bin/bash
 
+#
+# This is a small program intended to quickly share some usefull Solus* logs
+# for trouble shooting.
+# Run the following command to execute:
+#   curl https://noahloomans.com/share-logs.sh | bash
+#
+# *I'll probably add support for more distros later
+#
+
 { # Make sure the entire program is downloaded before executing code
     mkdir /tmp/share-logs.data
 
