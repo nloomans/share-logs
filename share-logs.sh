@@ -19,6 +19,7 @@
     inxi | tee /tmp/share-logs.data/inxi
     lspci | tee /tmp/share-logs.data/lspci
     lsusb | tee /tmp/share-logs.data/lsusb
+    linux-driver-management status | tee /tmp/share-logs.data/linux-driver-management
 
     cd /tmp
     tar czf share-logs.tar.gz share-logs.data
