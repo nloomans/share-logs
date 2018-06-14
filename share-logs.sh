@@ -8,6 +8,9 @@
 #
 # *I'll probably add support for more distros later
 #
+# AVAILABLE FLAGS:
+#  c  --  Run a command and upload the output
+#
 
 send_logs () {
     tmpdir="$(mktemp -d)"
