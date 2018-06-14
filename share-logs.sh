@@ -5,6 +5,15 @@
 
     export LC_ALL=en_US.UTF-8
 
+    echo "---> Checking if transfer.sh is reachable..."
+    if curl https://transfer.sh/ > /dev/null; then
+        echo "Success"
+    else
+        echo "FATAL ERRROR: https://transfer.sh/ is not reachable!"
+        echo "You probably don't have any internet."
+        exit 1
+    fi
+
     echo "---> Running eopkg check..."
     # sudo eopkg check -N 2>&1 | tee /tmp/share-logs.data/eopkg-check.log
 
