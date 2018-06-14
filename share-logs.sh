@@ -4,7 +4,8 @@
 # This is a small program intended to quickly share some useful Solus* logs
 # for trouble shooting.
 # Run the following command to execute:
-#   curl https://noahloomans.com/share-logs.sh | bash
+#   wget https://noahloomans.com/share-logs.sh
+#   bash share-logs.sh
 #
 # *I'll probably add support for more distros later
 #
