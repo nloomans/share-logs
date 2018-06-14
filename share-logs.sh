@@ -15,6 +15,11 @@
     sudo journalctl -b 3 > /tmp/share-logs.data/journalctl.3.log
     sudo journalctl -b 4 > /tmp/share-logs.data/journalctl.4.log
 
+    echo "---> Collecting hardware information"
+    inxi | tee /tmp/share-logs.data/inxi
+    lspci | tee /tmp/share-logs.data/lspci
+    lsusb | tee /tmp/share-logs.data/lsusb
+
     cd /tmp
     tar czf share-logs.tar.gz share-logs.data
 
