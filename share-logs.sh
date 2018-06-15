@@ -9,14 +9,17 @@
 #
 # *I'll probably add support for more distros later
 #
+# Fork me on GitHub:
+#   https://github.com/nloomans/share-logs
+#
 
 check_connection () {
     echo "---> Checking if transfer.sh is reachable..."
     if curl -s https://transfer.sh/ > /dev/null; then
         echo "     Success"
     else
-        echo "FATAL ERRROR: https://transfer.sh/ is not reachable!"
-        echo "You probably don't have any internet."
+        echo "FATAL ERROR: https://transfer.sh/ is not reachable!"
+        echo "Data not uploaded."
         exit 1
     fi
     
@@ -32,6 +35,7 @@ send_logs () {
     echo
     echo "WARNING: The following system data may be uploaded:"
     echo " - The full log files from the last 5 boots"
+    echo "   (probably contains identifying information!)"
     echo " - Hardware information"
     echo " - Integrity of installed packages"
     echo
@@ -43,7 +47,7 @@ send_logs () {
     read -p "   (takes a minute or two!) [Y/n] " yn
     case $yn in
         [Nn]* )
-            echo "Slipping eopkg check..."
+            echo "Skipping eopkg check..."
             ;;
         * ) 
             echo "---> Running eopkg check..."
@@ -67,12 +71,10 @@ send_logs () {
     cd /tmp
     tar czf share-logs.tar.gz $tmpdir
 
-    echo "---> Uploading collected data, PLEASE SHARE THE FOLLOWING LINK:"
-    curl --upload-file ./share-logs.tar.gz https://transfer.sh/share-logs.tar.gz
-    echo # Add a trailing new line
+    upload_data ./share-logs.tar.gz ".tar.gz"
 }
 
-record_command() {
+record_command () {
     clear # Clear to screen to make it clear that we are launching a sub shell
     echo "--> The output of whatever happens in the following shell will be uploaded to"
     echo "--> transfer.sh. You will be given an option to cancel the upload."
@@ -81,8 +83,13 @@ record_command() {
     bash | tee "$tmpdir/bash.sh"
 
     read -p "--> Command recorded, press enter to upload, CTRL+C to cancel..." throw_away_var
-    echo "---> Uploading collected data, PLEASE SHARE THE FOLLOWING LINK:"
-    curl --upload-file $tmpdir/bash.sh https://transfer.sh/bash.sh
+    upload_data "$tmpdir/bash.sh" ".sh"
+}
+
+upload_data () {
+    echo "---> Uploading collected data, data will be downloadable for 1 hour"
+    echo "     PLEASE SHARE THE FOLLOWING LINK:"
+    curl -H "Max-Downloads: 5" -H "Max-Days: 0.042" --upload-file "$1" "https://transfer.sh/share-logs$2"
     echo # Add a trailing new line
 }
 
@@ -98,7 +105,7 @@ elif [ "$1" == "basic" ]; then
     create_tmp_dir
     send_logs
 else
-    echo "Usuage: bash share-logs.sh <command>"
+    echo "Usage: bash share-logs.sh <command>"
     echo
     echo "Commands:"
     echo "  basic       Collect end send basic logs and system info. Use this if unsure."
