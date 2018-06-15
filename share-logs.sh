@@ -13,22 +13,26 @@
 #  c  --  Run a command and upload the output
 #
 
-send_logs () {
-    tmpdir="$(mktemp -d)"
-
-    export LC_ALL=en_US.UTF-8
-
+check_connection () {
     echo "---> Checking if transfer.sh is reachable..."
-    if curl https://transfer.sh/ > /dev/null; then
-        echo "Success"
+    if curl -s https://transfer.sh/ > /dev/null; then
+        echo "     Success"
     else
         echo "FATAL ERRROR: https://transfer.sh/ is not reachable!"
         echo "You probably don't have any internet."
         exit 1
     fi
+    
+}
 
+create_tmp_dir () {
+    echo "---> Creating tmp dir..."
+    tmpdir="$(mktemp -d -t share-logs.XXXXXXXXXX)"
+    echo "     NOTE: All files will be stored in $tmpdir"
+}
+
+send_logs () {
     echo
-
     echo "WARNING: The following system data may be uploaded:"
     echo " - The full log files from the last 5 boots"
     echo " - Hardware information"
@@ -36,10 +40,10 @@ send_logs () {
     echo
     echo "Are you sure you want to continue?"
     read -p "Press enter to continue, CTRL+C to cancel..."
-
     echo
 
-    read -p "Would you like to run eopkg check? (takes a minute or two!) [Y/n] " yn
+    echo "Would you like to check the integrity of installed packages?"
+    read -p "   (takes a minute or two!) [Y/n] " yn
     case $yn in
         [Nn]* )
             echo "Slipping eopkg check..."
@@ -71,9 +75,8 @@ send_logs () {
     echo # Add a trailing new line
 }
 
-send_command_output() {
-    tmpdir="$(mktemp -d)"
-
+record_command() {
+    clear # Clear to screen to make it clear that we are launching a sub shell
     echo "--> The output of whatever happens in the following shell will be uploaded to"
     echo "--> transfer.sh. You will be given an option to cancel the upload."
     echo "--> Type exit when you are done."
@@ -86,15 +89,24 @@ send_command_output() {
     echo # Add a trailing new line
 }
 
-{ # Make sure the entire program is downloaded before executing code
-    echo "Please enter any flags you are asked to enter."
-    echo "If unsure press enter"
-    read -p "FLAGS: " flags
+# Ensure that child processes always output in English.
+export LC_ALL=en_US.UTF-8
 
-    if [ "$flags" = "c" ]; then
-        send_command_output;
-        exit 0
-    fi
-
-    send_logs;
-}
+if [ "$1" == "record" ]; then
+    check_connection
+    create_tmp_dir
+    record_command
+elif [ "$1" == "basic" ]; then
+    check_connection
+    create_tmp_dir
+    send_logs
+else
+    echo "Usuage: bash share-logs.sh <command>"
+    echo
+    echo "Commands:"
+    echo "  basic       Collect end send basic logs and system info. Use this if unsure."
+    echo "  record      Record the output of a custom command."
+    echo
+    echo "Credits:"
+    echo "  Noah Loomans (mrCyborg on IRC) for creating this script"
+fi
