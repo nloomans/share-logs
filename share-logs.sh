@@ -9,9 +9,6 @@
 #
 # *I'll probably add support for more distros later
 #
-# AVAILABLE FLAGS:
-#  c  --  Run a command and upload the output
-#
 
 check_connection () {
     echo "---> Checking if transfer.sh is reachable..."
