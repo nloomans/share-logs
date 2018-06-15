@@ -56,17 +56,17 @@ send_logs () {
     esac
 
     echo "---> Collecting journalctl log files from the last 5 boots..."
-    sudo journalctl -b > "$tmpdir/journalctl.0.log"
-    sudo journalctl -b 1 > "$tmpdir/journalctl.1.log"
-    sudo journalctl -b 2 > "$tmpdir/journalctl.2.log"
-    sudo journalctl -b 3 > "$tmpdir/journalctl.3.log"
-    sudo journalctl -b 4 > "$tmpdir/journalctl.4.log"
+    sudo journalctl -b 2>&1 > "$tmpdir/journalctl.0.log"
+    sudo journalctl -b 1 2>&1 > "$tmpdir/journalctl.1.log"
+    sudo journalctl -b 2 2>&1 > "$tmpdir/journalctl.2.log"
+    sudo journalctl -b 3 2>&1 > "$tmpdir/journalctl.3.log"
+    sudo journalctl -b 4 2>&1 > "$tmpdir/journalctl.4.log"
 
     echo "---> Collecting hardware information"
-    inxi -F | tee "$tmpdir/inxi"
-    lspci | tee "$tmpdir/lspci"
-    lsusb | tee "$tmpdir/lsusb"
-    linux-driver-management status | tee "$tmpdir/linux-driver-management"
+    inxi -F 2>&1 | tee "$tmpdir/inxi"
+    lspci 2>&1 | tee "$tmpdir/lspci"
+    lsusb 2>&1 | tee "$tmpdir/lsusb"
+    linux-driver-management status 2>&1 | tee "$tmpdir/linux-driver-management"
 
     cd /tmp
     tar czf share-logs.tar.gz $tmpdir
@@ -80,7 +80,8 @@ record_command () {
     echo "--> transfer.sh. You will be given an option to cancel the upload."
     echo "--> Type exit when you are done."
 
-    bash | tee "$tmpdir/bash.sh"
+    # The default .bashrc screws up the logging info.
+    bash --noprofile --norc -i 2>&1 | tee "$tmpdir/bash.sh"
 
     read -p "--> Command recorded, press enter to upload, CTRL+C to cancel..." throw_away_var
     upload_data "$tmpdir/bash.sh" ".sh"
