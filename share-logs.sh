@@ -31,13 +31,26 @@ create_tmp_dir () {
     echo "     NOTE: All files will be stored in $tmpdir"
 }
 
+strip_identifying_information () {
+    cat \
+        | sed -E 's/((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])/[IPv4 REMOVED]/g' \
+        | sed -E 's/(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))/[IPv6 REMOVED]/g' \
+        | sed -E "s/$(whoami)/[USERNAME REMOVED]/g" \
+        | sed -e "s/$(cat /etc/hostname)/[HOSTNAME REMOVED]/" 
+}
+
 send_logs () {
     echo
     echo "WARNING: The following system data may be uploaded:"
     echo " - The full log files from the last 5 boots"
-    echo "   (probably contains identifying information!)"
     echo " - Hardware information"
     echo " - Integrity of installed packages"
+    echo
+    echo "This may contain identifying information. An attempt to remove IP addresses,"
+    echo "your username, and your hostname will be made."
+    echo
+    echo "The files will automatically be removed from the upload server after 1 hour, or"
+    echo "when it has been downloaded 5 times."
     echo
     echo "Are you sure you want to continue?"
     read -p "Press enter to continue, CTRL+C to cancel..."
@@ -51,22 +64,22 @@ send_logs () {
             ;;
         * ) 
             echo "---> Running eopkg check..."
-            sudo eopkg check -N 2>&1 | tee "$tmpdir/eopkg-check.log"
+            sudo eopkg check -N 2>&1 | strip_identifying_information | tee "$tmpdir/eopkg-check.log"
             ;;
     esac
 
     echo "---> Collecting journalctl log files from the last 5 boots..."
-    sudo journalctl -b 2>&1 > "$tmpdir/journalctl.0.log"
-    sudo journalctl -b 1 2>&1 > "$tmpdir/journalctl.1.log"
-    sudo journalctl -b 2 2>&1 > "$tmpdir/journalctl.2.log"
-    sudo journalctl -b 3 2>&1 > "$tmpdir/journalctl.3.log"
-    sudo journalctl -b 4 2>&1 > "$tmpdir/journalctl.4.log"
+    sudo journalctl -b 2>&1 | strip_identifying_information > "$tmpdir/journalctl.0.log"
+    sudo journalctl -b 1 2>&1 | strip_identifying_information > "$tmpdir/journalctl.1.log"
+    sudo journalctl -b 2 2>&1 | strip_identifying_information > "$tmpdir/journalctl.2.log"
+    sudo journalctl -b 3 2>&1 | strip_identifying_information > "$tmpdir/journalctl.3.log"
+    sudo journalctl -b 4 2>&1 | strip_identifying_information > "$tmpdir/journalctl.4.log"
 
     echo "---> Collecting hardware information"
-    inxi -F 2>&1 | tee "$tmpdir/inxi"
-    lspci 2>&1 | tee "$tmpdir/lspci"
-    lsusb 2>&1 | tee "$tmpdir/lsusb"
-    linux-driver-management status 2>&1 | tee "$tmpdir/linux-driver-management"
+    inxi -F 2>&1 | strip_identifying_information | tee "$tmpdir/inxi"
+    lspci 2>&1 | strip_identifying_information | tee "$tmpdir/lspci"
+    lsusb 2>&1 | strip_identifying_information | tee "$tmpdir/lsusb"
+    linux-driver-management status 2>&1 | strip_identifying_information | tee "$tmpdir/linux-driver-management"
 
     cd /tmp
     tar czf share-logs.tar.gz $tmpdir
