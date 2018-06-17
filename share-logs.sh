@@ -49,9 +49,6 @@ send_logs () {
     echo "This may contain identifying information. An attempt to remove IP addresses,"
     echo "your username, and your hostname will be made."
     echo
-    echo "The files will automatically be removed from the upload server after 1 hour, or"
-    echo "when it has been downloaded 5 times."
-    echo
     echo "Are you sure you want to continue?"
     read -p "Press enter to continue, CTRL+C to cancel..."
     echo
@@ -75,7 +72,7 @@ send_logs () {
     sudo journalctl -b 3 2>&1 | strip_identifying_information > "$tmpdir/journalctl.3.log"
     sudo journalctl -b 4 2>&1 | strip_identifying_information > "$tmpdir/journalctl.4.log"
 
-    echo "---> Collecting hardware information"
+    echo "---> Collecting hardware information..."
     inxi -F 2>&1 | strip_identifying_information | tee "$tmpdir/inxi"
     lspci 2>&1 | strip_identifying_information | tee "$tmpdir/lspci"
     lsusb 2>&1 | strip_identifying_information | tee "$tmpdir/lsusb"
@@ -101,9 +98,9 @@ record_command () {
 }
 
 upload_data () {
-    echo "---> Uploading collected data, data will be downloadable for 1 hour"
+    echo "---> Uploading collected data..."
     echo "     PLEASE SHARE THE FOLLOWING LINK:"
-    curl -H "Max-Downloads: 5" -H "Max-Days: 0.042" --upload-file "$1" "https://transfer.sh/share-logs$2"
+    curl --upload-file "$1" "https://transfer.sh/share-logs$2"
     echo # Add a trailing new line
 }
 
